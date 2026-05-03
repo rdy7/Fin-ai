@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #041627;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #1a2b3c;
+  
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #ecf4ff;
+  --color-surface-container: #e2efff;
+  --color-surface-dim: #ccdced;
+  
+  --color-tertiary-fixed: #7efba4;
+  --color-tertiary-fixed-dim: #61de8a;
+  
+  --animate-slam-in: slamIn 0.5s ease-out forwards;
+}
+
+@keyframes slamIn {
+  0% { transform: scale(1.1) translateY(-20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@layer base {
+  body {
+    @apply bg-[#f7f9ff] text-[#0e1d29] antialiased;
+  }
+}
+
+.data-tabular {
+  font-variant-numeric: tabular-nums;
+}

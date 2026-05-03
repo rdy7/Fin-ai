@@ -1,0 +1,6 @@
+{
+  "name": "Finalyze Core",
+  "description": "Institutional-grade financial analyzer with AI-powered insights, multi-format file uploads, and professional report generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["File Analysis", "Financial Reporting", "AI Dashboard"]
+}
