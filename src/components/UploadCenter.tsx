@@ -1,114 +1,122 @@
-import { Upload, FileText, FileSpreadsheet, MoreVertical, CheckCircle2, Loader2 } from 'lucide-react';
-import { MOCK_REPORTS } from '../constants';
+import { useState, useEffect } from 'react';
+import { Upload, FileText, FileSpreadsheet, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
-export default function UploadCenter() {
+interface UploadCenterProps {
+  onUploadComplete: (fileName: string) => void;
+}
+
+export default function UploadCenter({ onUploadComplete }: UploadCenterProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const handleSimulateUpload = () => {
+    setIsUploading(true);
+    setProgress(0);
+  };
+
+  useEffect(() => {
+    if (isUploading && progress < 100) {
+      const timer = setTimeout(() => {
+        setProgress(prev => Math.min(prev + Math.random() * 15, 100));
+      }, 300);
+      return () => clearTimeout(timer);
+    } else if (isUploading && progress >= 100) {
+      setTimeout(() => {
+        onUploadComplete('Relatório_Financeiro_Q3.pdf');
+      }, 800);
+    }
+  }, [isUploading, progress, onUploadComplete]);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-slam-in">
+    <div className="max-w-4xl mx-auto space-y-8">
       <section>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Upload Center</h1>
-        <p className="text-slate-500">Ingest institutional-grade financial datasets for core analysis and risk modeling.</p>
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Central de Inteligência</h1>
+        <p className="text-slate-500">Inicie uma nova análise enviando sua demonstração financeira (DRE ou Balanço).</p>
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Drop Zone */}
+        {/* Drop Zone / Upload Action */}
         <div className="md:col-span-2 bg-white border border-slate-200 p-8 rounded-xl shadow-sm">
-          <div className="h-80 border-2 border-dashed border-slate-300 bg-slate-50 rounded-lg flex flex-col items-center justify-center text-center p-8 transition-colors hover:bg-slate-100 group cursor-pointer">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-              <Upload className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">Drag and drop documents</h3>
-            <p className="text-slate-500 mb-6 max-w-xs text-sm">Upload your Excel spreadsheets or PDF financial statements for instant processing.</p>
-            <button className="px-8 py-3 bg-primary text-white font-bold uppercase text-xs tracking-widest rounded hover:opacity-90 transition-opacity shadow-sm">
-              Browse Files
-            </button>
-          </div>
+          <AnimatePresence mode="wait">
+            {!isUploading ? (
+              <motion.div 
+                key="dropzone"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-80 border-2 border-dashed border-slate-300 bg-slate-50 rounded-lg flex flex-col items-center justify-center text-center p-8 transition-colors hover:bg-slate-100 group cursor-pointer"
+                onClick={handleSimulateUpload}
+              >
+                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Upload className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">Arraste seu arquivo aqui</h3>
+                <p className="text-slate-500 mb-6 max-w-xs text-sm">Suporte para PDF e Excel. O sistema irá mapear as contas automaticamente.</p>
+                <button className="px-8 py-3 bg-primary text-white font-bold uppercase text-xs tracking-widest rounded hover:opacity-90 transition-opacity shadow-sm">
+                  Selecionar Arquivo
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="processing"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="h-80 bg-slate-900 rounded-lg flex flex-col items-center justify-center text-center p-8 relative overflow-hidden"
+              >
+                <div className="relative z-10 w-full max-w-xs">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-white mb-2">Processando com IA...</h3>
+                  <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden mb-4">
+                    <motion.div 
+                      className="h-full bg-primary" 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <p className="text-white/60 text-xs font-medium uppercase tracking-[0.2em] animate-pulse">
+                    {progress < 40 && 'Lendo estrutura do arquivo...'}
+                    {progress >= 40 && progress < 70 && 'Identificando planos de contas...'}
+                    {progress >= 70 && 'Gerando insights financeiros...'}
+                  </p>
+                </div>
+                <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #3b82f6 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Specs Card */}
-        <div className="bg-primary text-white p-8 rounded-xl flex flex-col justify-between relative overflow-hidden">
+        {/* Info Card */}
+        <div className="bg-primary text-white p-8 rounded-xl flex flex-col justify-between relative overflow-hidden shadow-lg">
           <div className="relative z-10">
-            <h3 className="text-xl font-bold mb-6">System Specs</h3>
+            <div className="flex items-center gap-2 mb-6">
+               <Sparkles className="w-5 h-5 text-tertiary-fixed" />
+               <h3 className="text-xl font-bold">Análise Pontual</h3>
+            </div>
             <ul className="space-y-4 text-sm opacity-90">
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-tertiary-fixed" />
-                PDF, XLSX, CSV, JSON
+                Extração de dados via OCR
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-tertiary-fixed" />
-                Max file size: 250MB
+                Mapeamento de KPIs
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-tertiary-fixed" />
-                AES-256 Encryption
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-tertiary-fixed" />
-                OCR Enabled
+                Sem armazenamento de dados
               </li>
             </ul>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-transparent opacity-40" />
+          <div className="mt-8 pt-6 border-t border-white/10">
+             <p className="text-[10px] uppercase font-bold tracking-widest text-white/60">Segurança</p>
+             <p className="text-xs mt-1">Seus dados são processados em memória e não ficam salvos no servidor.</p>
+          </div>
         </div>
       </div>
-
-      {/* Recent Uploads */}
-      <section className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-900">Recent Uploads</h2>
-          <button className="text-sm font-semibold text-primary hover:underline">View All Archive</button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-widest">
-              <tr>
-                <th className="px-6 py-4">Document Name</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4 text-right">Size</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {MOCK_REPORTS.map((report) => (
-                <tr key={report.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-10 h-10 rounded flex items-center justify-center",
-                        report.name.endsWith('.pdf') ? "bg-red-50 text-red-500" : "bg-blue-50 text-blue-500"
-                      )}>
-                        {report.name.endsWith('.pdf') ? <FileText className="w-5 h-5" /> : <FileSpreadsheet className="w-5 h-5" />}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm">{report.name}</p>
-                        <p className="text-[10px] text-slate-500 font-medium">{report.uploadDate}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600 font-medium">{report.category}</td>
-                  <td className="px-6 py-4 text-sm text-slate-900 text-right data-tabular">{report.size}</td>
-                  <td className="px-6 py-4">
-                    <span className={cn(
-                      "inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide",
-                      report.status === 'Processed' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                    )}>
-                      {report.status === 'Analyzing' && <Loader2 className="w-3 h-3 animate-spin mr-1" />}
-                      {report.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
     </div>
   );
 }
+
+

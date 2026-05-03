@@ -14,13 +14,28 @@ export interface Metric {
   value: number;
   change: number;
   target?: number;
+  format?: 'currency' | 'percent' | 'number';
+  desc?: string;
 }
 
 export interface AIInsight {
-  type: 'MARGIN OPTIMIZATION' | 'RISK ALERT' | 'STRATEGIC GROWTH';
+  type: 'EFICIÊNCIA' | 'RISCO' | 'OPORTUNIDADE' | 'ESTRATÉGICO';
   title: string;
   description: string;
   isPositive: boolean;
+}
+
+export interface DREEntry {
+  name: string;
+  value: number;
+  type: 'revenue' | 'expense' | 'result';
+}
+
+export interface BalanceSheetEntry {
+  name: string;
+  value: number;
+  category: 'Asset' | 'Liability' | 'Equity';
+  subCategory: string;
 }
 
 export interface PerformanceDatum {
@@ -47,3 +62,15 @@ export interface Observations {
 }
 
 export type AppView = 'Dashboard' | 'Upload' | 'Observations' | 'Report';
+export type DashboardTab = 'Overview' | 'DRE' | 'BalanceSheet';
+
+export interface ExtraordinaryEvent {
+  id: string;
+  description: string;
+  value: number;
+  type: 'revenue' | 'expense';
+  category: string;
+}
+
+
+

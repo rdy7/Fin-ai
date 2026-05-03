@@ -1,160 +1,198 @@
-import { Settings, Plus, Info as InfoIcon, X, BarChart2, AlertTriangle, Rocket, History } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { Plus, X, BarChart2, AlertTriangle, Rocket, History, TrendingUp, TrendingDown, Info, Trash2 } from 'lucide-react';
+import { cn, formatCurrency } from '../lib/utils';
 import { useState } from 'react';
+import { ExtraordinaryEvent } from '../types';
 
-export default function ObservationsView() {
-  const [tags, setTags] = useState(['Macro Trends', 'Volatility']);
+interface ObservationsViewProps {
+  onFinish: () => void;
+}
+
+export default function ObservationsView({ onFinish }: ObservationsViewProps) {
+  const [events, setEvents] = useState<ExtraordinaryEvent[]>([
+    { id: '1', description: 'Venda de Imóvel Sede (Não Recorrente)', value: 450000, type: 'revenue', category: 'Outras Receitas' },
+    { id: '2', description: 'Reparo Emergencial (Inundação Almoxarifado)', value: 85000, type: 'expense', category: 'Manutenção' }
+  ]);
+
+  const [newDesc, setNewDesc] = useState('');
+  const [newValue, setNewValue] = useState('');
+  const [newType, setNewType] = useState<'revenue' | 'expense'>('expense');
+
+  const addEvent = () => {
+    if (!newDesc || !newValue) return;
+    const event: ExtraordinaryEvent = {
+      id: Math.random().toString(36).substr(2, 9),
+      description: newDesc,
+      value: parseFloat(newValue),
+      type: newType,
+      category: 'Ajuste Manual'
+    };
+    setEvents([...events, event]);
+    setNewDesc('');
+    setNewValue('');
+  };
+
+  const removeEvent = (id: string) => {
+    setEvents(events.filter(e => e.id !== id));
+  };
+
+  const totalRevenue = events.filter(e => e.type === 'revenue').reduce((acc, curr) => acc + curr.value, 0);
+  const totalExpense = events.filter(e => e.type === 'expense').reduce((acc, curr) => acc + curr.value, 0);
+  const netImpact = totalRevenue - totalExpense;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-slam-in">
-      <header className="flex justify-between items-end">
+    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-700">
+      <header className="flex justify-between items-end bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Observations & Caveats</h1>
-          <p className="text-slate-500">Document professional insights and risk assessments for Q3 Portfolio Review.</p>
+          <span className="text-[10px] font-bold text-primary tracking-[0.2em] mb-2 block uppercase">Passo 2: Curadoria Humana</span>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Ajustes e Eventos Não Recorrentes</h1>
+          <p className="text-slate-500 max-w-xl text-sm leading-relaxed">
+            Identifique receitas ou gastos extraordinários que distorcem a análise real do negócio. Isso ajudará a IA a calcular o **Lucro Normalizado**.
+          </p>
         </div>
         <div className="flex gap-4">
-          <button className="px-6 py-2 border border-primary text-primary font-bold text-xs tracking-widest rounded transition-colors hover:bg-primary/5">
-            SAVE DRAFT
-          </button>
-          <button className="px-6 py-2 bg-primary text-white font-bold text-xs tracking-widest rounded transition-opacity hover:opacity-90 shadow-sm">
-            FINALIZE ANALYSIS
+          <button 
+            onClick={onFinish}
+            className="px-8 py-3 bg-primary text-white font-bold text-xs tracking-widest rounded transition-all hover:opacity-90 shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2"
+          >
+            GERAR PAINEL AJUSTADO <Rocket className="w-4 h-4" />
           </button>
         </div>
       </header>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-8 space-y-6">
-          {/* General Observations */}
+      <div className="grid grid-cols-12 gap-8">
+        <div className="col-span-12 lg:col-span-8 space-y-8">
+          {/* Add Adjustment Form */}
           <section className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 text-primary">
-              <BarChart2 className="w-6 h-6" />
-              <h3 className="text-xl font-bold">General Observations</h3>
+            <div className="flex items-center gap-2 mb-6 text-slate-900">
+              <Plus className="w-6 h-6 text-primary" />
+              <h3 className="text-xl font-bold">Novo Evento Extraordinário</h3>
             </div>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Primary Insights</label>
-                <textarea 
-                  className="w-full bg-[#f7f9ff] border border-slate-200 rounded-lg p-4 focus:ring-1 focus:ring-primary focus:border-primary text-sm min-h-[120px]"
-                  placeholder="Enter high-level market context and quantitative summaries..."
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-6">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Descrição do Evento</label>
+                <input 
+                  type="text"
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  placeholder="Ex: Reforma após sinistro, Venda de ativo..."
                 />
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Category Tags</label>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map(tag => (
-                    <span key={tag} className="inline-flex items-center gap-1 px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full">
-                      {tag} <X className="w-3 h-3 cursor-pointer" onClick={() => setTags(tags.filter(t => t !== tag))} />
-                    </span>
-                  ))}
-                  <button className="inline-flex items-center gap-1 px-3 py-1 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-full hover:border-primary hover:text-primary transition-colors">
-                    <Plus className="w-3 h-3" /> Add Category
-                  </button>
-                </div>
+              <div className="col-span-3">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Valor (R$)</label>
+                <input 
+                  type="number"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                  placeholder="0,00"
+                />
+              </div>
+              <div className="col-span-3">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Natureza</label>
+                <select 
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value as 'revenue' | 'expense')}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                >
+                  <option value="revenue">Receita (+)</option>
+                  <option value="expense">Despesa (-)</option>
+                </select>
+              </div>
+              <div className="col-span-12 mt-2">
+                <button 
+                  onClick={addEvent}
+                  className="w-full py-3 bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest rounded hover:bg-slate-800 transition-colors"
+                >
+                  Adicionar Ajuste à Análise
+                </button>
               </div>
             </div>
           </section>
 
-          {/* Risk Factors */}
-          <section className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 text-red-600">
-              <AlertTriangle className="w-6 h-6" />
-              <h3 className="text-xl font-bold">Risk Factors</h3>
+          {/* List of Adjustments */}
+          <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-900">Itens sob Curadoria</h3>
+              <span className="text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{events.length} itens</span>
             </div>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Critical Risk Assessment</label>
-                <textarea 
-                  className="w-full bg-[#f7f9ff] border border-slate-200 rounded-lg p-4 focus:ring-1 focus:ring-red-500 focus:border-red-500 text-sm min-h-[120px]"
-                  placeholder="Identify potential downsides, liquidity constraints, or regulatory shifts..."
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Impact Level</label>
-                  <select defaultValue="High (Systemic)" className="w-full bg-[#f7f9ff] border border-slate-200 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary">
-                    <option>Low (Transactional)</option>
-                    <option>Medium (Structural)</option>
-                    <option>High (Systemic)</option>
-                  </select>
+            <div className="divide-y divide-slate-100">
+              {events.length === 0 ? (
+                <div className="p-12 text-center">
+                  <p className="text-slate-400 italic text-sm">Nenhum evento extraordinário adicionado.</p>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Probability</label>
-                  <select defaultValue="25-50%" className="w-full bg-[#f7f9ff] border border-slate-200 rounded-lg p-3 text-sm focus:ring-1 focus:ring-primary">
-                    <option>0-25%</option>
-                    <option>25-50%</option>
-                    <option>50-75%</option>
-                    <option>75-100%</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Strategic Recommendations */}
-          <section className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm">
-            <div className="flex items-center gap-2 mb-6 text-green-700">
-              <Rocket className="w-6 h-6" />
-              <h3 className="text-xl font-bold">Strategic Recommendations</h3>
-            </div>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Action Plan</label>
-                <textarea 
-                  className="w-full bg-[#f7f9ff] border border-slate-200 rounded-lg p-4 focus:ring-1 focus:ring-primary focus:border-primary text-sm min-h-[120px]"
-                  placeholder="Provide actionable steps for portfolio rebalancing or risk mitigation..."
-                />
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <InfoIcon className="w-5 h-5 text-green-700 shrink-0" />
-                <p className="text-sm font-medium text-green-800">These recommendations will be directly reflected in the final investor presentation.</p>
-              </div>
+              ) : (
+                events.map(event => (
+                  <div key={event.id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center",
+                        event.type === 'revenue' ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                      )}>
+                        {event.type === 'revenue' ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{event.description}</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">{event.category}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <span className={cn(
+                        "font-bold text-sm tabular-nums",
+                        event.type === 'revenue' ? "text-green-600" : "text-red-600"
+                      )}>
+                        {event.type === 'revenue' ? '+' : '-'} {formatCurrency(event.value)}
+                      </span>
+                      <button 
+                        onClick={() => removeEvent(event.id)}
+                        className="p-2 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </section>
         </div>
 
-        {/* Info Sidebar */}
-        <div className="col-span-12 lg:col-span-4 space-y-6">
-          <div className="bg-primary text-white p-8 rounded-xl shadow-md relative overflow-hidden">
-             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/5 rounded-full blur-xl" />
-             <h4 className="text-[10px] font-bold tracking-widest uppercase mb-4 opacity-70">Analyst Summary</h4>
-             <div className="space-y-3">
-               <div className="flex justify-between border-b border-white/10 pb-2">
-                 <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">Review Status</span>
-                 <span className="font-bold text-[10px] uppercase">In Progress</span>
-               </div>
-               <div className="flex justify-between border-b border-white/10 pb-2">
-                 <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">Asset Class</span>
-                 <span className="font-bold text-[10px] uppercase">Equities</span>
-               </div>
-               <div className="flex justify-between">
-                 <span className="text-white/60 text-[10px] font-bold uppercase tracking-wider">Last Sync</span>
-                 <span className="font-bold text-[10px] uppercase">12:45 PM Today</span>
-               </div>
-             </div>
-             <p className="mt-8 text-[10px] text-white/40 leading-relaxed italic border-t border-white/10 pt-6">
-               "Documenting the structural shift in yield curves requires precise categorization of duration risks."
-             </p>
+        {/* Sidebar Summary */}
+        <div className="col-span-12 lg:col-span-4 space-y-8">
+          <div className="bg-slate-900 text-white p-8 rounded-xl shadow-xl relative overflow-hidden">
+            <div className="relative z-10">
+              <h4 className="text-[10px] font-bold tracking-widest uppercase mb-6 text-white/50">Impacto no Resultado</h4>
+              <div className="space-y-6">
+                <div>
+                  <span className="text-[10px] font-bold text-white/40 uppercase block mb-1">Ganhos Não Recorrentes</span>
+                  <p className="text-2xl font-bold text-green-400">{formatCurrency(totalRevenue)}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-white/40 uppercase block mb-1">Perdas Extraordinárias</span>
+                  <p className="text-2xl font-bold text-red-400">-{formatCurrency(totalExpense)}</p>
+                </div>
+                <div className="pt-6 border-t border-white/10">
+                  <span className="text-[10px] font-bold text-white/40 uppercase block mb-1">Impacto Líquido Ajustado</span>
+                  <p className={cn(
+                    "text-3xl font-black tabular-nums",
+                    netImpact >= 0 ? "text-primary" : "text-red-500"
+                  )}>
+                    {netImpact >= 0 ? '+' : ''}{formatCurrency(netImpact)}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary/20 rounded-full blur-3xl" />
           </div>
 
-          <div className="bg-slate-100/50 p-8 rounded-xl border border-slate-200">
-            <h4 className="text-[10px] font-bold tracking-widest uppercase mb-6 text-slate-500">Historical Context</h4>
-            <div className="space-y-6">
-              {[
-                { label: 'Q2 2024 Analysis', desc: 'Recommended conservative positioning due to inflation prints.' },
-                { label: 'Q1 2024 Analysis', desc: 'Identified tech sector growth catalyst before earnings season.' }
-              ].map((item, i) => (
-                <div key={item.label} className="flex gap-3">
-                  <div className={cn("w-1 h-12 rounded-full", i === 0 ? "bg-primary" : "bg-slate-300")} />
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-900 uppercase tracking-wider">{item.label}</p>
-                    <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
+          <div className="bg-blue-50 border border-blue-100 p-8 rounded-xl">
+            <div className="flex items-center gap-2 mb-4 text-primary">
+              <Info className="w-5 h-5" />
+              <h4 className="text-xs font-bold uppercase tracking-wider">Por que ajustar?</h4>
             </div>
-            <button className="w-full mt-8 py-2 text-[10px] font-bold text-primary hover:underline flex items-center justify-center gap-1 uppercase tracking-widest">
-              <History className="w-3 h-3" /> View Full Archive
-            </button>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Itens não recorrentes "sujam" a visão da operação. Ao isolá-los, a IA consegue projetar a **capacidade real de geração de caixa** da empresa nos próximos trimestres.
+            </p>
           </div>
         </div>
       </div>

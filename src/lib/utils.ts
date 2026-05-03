@@ -6,14 +6,16 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'BRL',
     notation: 'compact',
     maximumFractionDigits: 1,
   }).format(value);
 }
 
 export function formatPercent(value: number): string {
-  return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
+  const displayValue = value < 1 && value > -1 ? value * 100 : value;
+  return `${displayValue > 0 ? '+' : ''}${displayValue.toFixed(1)}%`;
 }
+

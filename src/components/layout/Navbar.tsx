@@ -5,16 +5,16 @@ export default function Navbar() {
     <header className="w-full top-0 sticky bg-white border-b border-slate-200 z-50">
       <div className="flex justify-between items-center h-16 px-6 w-full max-w-[1440px] mx-auto">
         <div className="flex items-center gap-8">
-          <span className="text-lg font-bold text-slate-900">Finalyze Core</span>
+          <span className="text-lg font-bold text-primary">FinAI Core</span>
           <nav className="hidden md:flex gap-6 items-center">
-            <a className="text-slate-900 font-semibold border-b-2 border-slate-900 h-16 flex items-center" href="#">
-              Analysis Dashboard
+            <a className="text-slate-900 font-semibold border-b-2 border-primary h-16 flex items-center" href="#">
+              Painel de Análise
             </a>
             <a className="text-slate-500 font-medium hover:text-slate-900 transition-colors" href="#">
-              Reports
+              Relatórios
             </a>
             <a className="text-slate-500 font-medium hover:text-slate-900 transition-colors" href="#">
-              Portfolio
+              Carteira
             </a>
           </nav>
         </div>
@@ -36,3 +36,4 @@ export default function Navbar() {
     </header>
   );
 }
+

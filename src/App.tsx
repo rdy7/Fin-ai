@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { useState } from 'react';
 import { AppView } from './types';
 import Navbar from './components/layout/Navbar';
@@ -13,28 +8,41 @@ import ObservationsView from './components/ObservationsView';
 import AnalysisReport from './components/AnalysisReport';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<AppView>('Dashboard');
+  const [currentView, setCurrentView] = useState<AppView>('Upload');
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [activeFileName, setActiveFileName] = useState<string | null>(null);
+
+  const handleUploadComplete = (fileName: string) => {
+    setActiveFileName(fileName);
+    setIsAnalyzed(true);
+    setCurrentView('Observations');
+  };
 
   const renderView = () => {
     switch (currentView) {
       case 'Upload':
-        return <UploadCenter />;
+        return <UploadCenter onUploadComplete={handleUploadComplete} />;
       case 'Observations':
-        return <ObservationsView />;
+        return <ObservationsView onFinish={() => setCurrentView('Dashboard')} />;
       case 'Dashboard':
-        return <AnalysisDashboard />;
+        return <AnalysisDashboard fileName={activeFileName} />;
       case 'Report':
         return <AnalysisReport />;
       default:
-        return <AnalysisDashboard />;
+        return <UploadCenter onUploadComplete={handleUploadComplete} />;
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#f7f9ff] flex flex-col">
       <Navbar />
       <div className="flex flex-1 max-w-[1440px] mx-auto w-full">
-        <Sidebar currentView={currentView} onViewChange={setCurrentView} />
+        <Sidebar 
+          currentView={currentView} 
+          onViewChange={setCurrentView} 
+          isAnalyzed={isAnalyzed}
+        />
         <main className="flex-1 p-8 lg:p-12 overflow-y-auto">
           {renderView()}
         </main>
@@ -42,3 +50,4 @@ export default function App() {
     </div>
   );
 }
+
