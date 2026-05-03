@@ -6,24 +6,40 @@ import AnalysisDashboard from './components/AnalysisDashboard';
 import UploadCenter from './components/UploadCenter';
 import ObservationsView from './components/ObservationsView';
 import AnalysisReport from './components/AnalysisReport';
+import AnalysisLoading from './components/AnalysisLoading';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('Upload');
   const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
 
   const handleUploadComplete = (fileName: string) => {
     setActiveFileName(fileName);
-    setIsAnalyzed(true);
+    // Transição rápida para ajustes
     setCurrentView('Observations');
   };
 
+  const handleStartAnalysis = () => {
+    setIsProcessing(true);
+  };
+
+  const handleAnalysisFinished = () => {
+    setIsProcessing(false);
+    setIsAnalyzed(true);
+    setCurrentView('Dashboard');
+  };
+
   const renderView = () => {
+    if (isProcessing) {
+      return <AnalysisLoading onComplete={handleAnalysisFinished} />;
+    }
+
     switch (currentView) {
       case 'Upload':
         return <UploadCenter onUploadComplete={handleUploadComplete} />;
       case 'Observations':
-        return <ObservationsView onFinish={() => setCurrentView('Dashboard')} />;
+        return <ObservationsView onFinish={handleStartAnalysis} />;
       case 'Dashboard':
         return <AnalysisDashboard fileName={activeFileName} />;
       case 'Report':
@@ -32,6 +48,7 @@ export default function App() {
         return <UploadCenter onUploadComplete={handleUploadComplete} />;
     }
   };
+
 
 
   return (
