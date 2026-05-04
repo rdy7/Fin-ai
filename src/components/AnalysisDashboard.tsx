@@ -1,17 +1,43 @@
 import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ComposedChart } from 'recharts';
 import { Download, Share2, Sparkles, TrendingUp, Wallet, LayoutDashboard } from 'lucide-react';
-import { MOCK_PERFORMANCE, MOCK_INSIGHTS, MOCK_DRE, MOCK_BALANCE_SHEET } from '../constants';
 import { cn, formatCurrency, formatPercent } from '../lib/utils';
 import { DashboardTab } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface AnalysisDashboardProps {
   fileName?: string | null;
+  data?: any;
 }
 
-export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) {
+export default function AnalysisDashboard({ fileName, data }: AnalysisDashboardProps) {
   const [activeTab, setActiveTab] = useState<DashboardTab>('Overview');
+
+  const summary = data?.summary || {
+    revenue: 0,
+    ebitda: 0,
+    net_income: 0,
+    adjusted_impact: 0
+  };
+
+  const dreData = data?.dre || [];
+  const balanceSheet = data?.balance_sheet || { assets: [], liabilities: [] };
+
+  const performanceData = [
+    { name: 'Receita', actual: summary.revenue, previous: summary.previous_revenue || 0 },
+    { name: 'EBITDA', actual: summary.ebitda, previous: summary.previous_ebitda || 0 },
+    { name: 'Lucro Líquido', actual: summary.net_income, previous: summary.previous_net_income || 0 }
+  ];
+
+  const insights = [
+    {
+      type: 'AI OBSERVATION',
+      description: `O impacto ajustado foi de ${formatCurrency(summary.adjusted_impact)}. ` +
+        (summary.adjusted_impact >= 0 ? 'Os eventos não recorrentes geraram impacto positivo.' : 'Os eventos não recorrentes geraram impacto negativo.'),
+      isPositive: summary.adjusted_impact >= 0
+    }
+  ];
+
 
 
 
@@ -20,10 +46,11 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[
-          { label: 'Receita Bruta', value: 5800000, change: 12.4, target: 6500000, color: 'primary' },
-          { label: 'EBITDA', value: 350000, change: 5.2, isChart: true },
-          { label: 'ROE', value: 0.18, change: 2.1, desc: 'Retorno sobre patrimônio líquido estável no período.' }
+          { label: 'Receita Bruta', value: summary.revenue, change: 12.4, target: 6500000, color: 'primary' },
+          { label: 'EBITDA', value: summary.ebitda, change: 5.2, isChart: true },
+          { label: 'Lucro Líquido', value: summary.net_income, change: 2.1, desc: 'Resultado após ajustes e eventos não recorrentes.' }
         ].map((kpi, i) => (
+
           <div key={kpi.label} className="bg-white border border-slate-200 p-8 rounded shadow-sm hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{kpi.label}</span>
@@ -65,39 +92,40 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-8 bg-white border border-slate-200 p-8 rounded shadow-sm">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-bold text-slate-900">Performance Trimestral</h3>
+            <h3 className="text-xl font-bold text-slate-900">Performance Comparativa</h3>
             <div className="flex gap-4">
-               <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                 <div className="w-2.5 h-2.5 bg-primary rounded-sm" /> Realizado
-               </span>
-               <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                 <div className="w-2.5 h-2.5 bg-slate-200 rounded-sm" /> Projetado
-               </span>
+              <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="w-2.5 h-2.5 bg-primary rounded-sm" /> Atual
+              </span>
+              <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                <div className="w-2.5 h-2.5 bg-slate-200 rounded-sm" /> Anterior
+              </span>
             </div>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_PERFORMANCE} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <BarChart data={performanceData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }}
                   dy={10}
                 />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} />
-                <Tooltip 
+                <Tooltip
                   cursor={{ fill: '#f8fafc' }}
                   contentStyle={{ backgroundColor: '#041627', border: 'none', borderRadius: '4px', color: '#fff' }}
-                  itemStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                  itemStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#fff' }}
                   formatter={(val: number) => formatCurrency(val)}
                 />
-                <Bar dataKey="actual" fill="#041627" radius={[2, 2, 0, 0]} barSize={40} />
-                <Bar dataKey="forecast" fill="#e2e8f0" radius={[2, 2, 0, 0]} barSize={40} />
+                <Bar dataKey="actual" name="Atual" fill="#041627" radius={[2, 2, 0, 0]} barSize={40} />
+                <Bar dataKey="previous" name="Anterior" fill="#e2e8f0" radius={[2, 2, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
+
         </div>
 
         <div className="col-span-12 lg:col-span-4 bg-primary text-white p-8 rounded relative overflow-hidden shadow-lg">
@@ -107,7 +135,7 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
               <h3 className="text-xl font-bold">Insights Estratégicos (IA)</h3>
             </div>
             <div className="space-y-8 flex-1">
-              {MOCK_INSIGHTS.map((insight, i) => (
+              {insights.map((insight, i) => (
                 <div key={i} className={cn(
                   "border-l-2 pl-6",
                   insight.isPositive ? "border-tertiary-fixed" : "border-white/20"
@@ -136,27 +164,28 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
         <h3 className="text-xl font-bold text-slate-900 mb-8">Cascata de Resultados (DRE)</h3>
         <div className="h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={MOCK_DRE} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+            <ComposedChart data={dreData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
               <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} hide />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
+              <YAxis
+                type="category"
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
                 tick={{ fill: '#041627', fontSize: 11, fontWeight: 700 }}
                 width={120}
               />
-              <Tooltip 
+              <Tooltip
                 cursor={{ fill: '#f8fafc' }}
                 contentStyle={{ backgroundColor: '#041627', border: 'none', borderRadius: '4px', color: '#fff' }}
+                itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
                 formatter={(val: number) => formatCurrency(val)}
               />
-              <Bar dataKey="value" barSize={32}>
-                {MOCK_DRE.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.type === 'result' ? '#041627' : entry.value > 0 ? '#10b981' : '#ef4444'} 
+              <Bar dataKey="value" name="Valor" barSize={32}>
+                {dreData.map((entry: any, index: number) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.type === 'result' ? '#041627' : entry.value > 0 ? '#10b981' : '#ef4444'}
                   />
                 ))}
               </Bar>
@@ -170,26 +199,50 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
               <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Descrição</th>
-              <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Valor (BRL)</th>
+              <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Anterior (BRL)</th>
+              <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Atual (BRL)</th>
+              <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Var. YoY</th>
               <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">% Receita</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {MOCK_DRE.map((item) => (
-              <tr key={item.name} className={cn(
-                "hover:bg-slate-50/50 transition-colors",
-                item.type === 'result' ? "bg-slate-50/30 font-bold" : ""
-              )}>
-                <td className="px-8 py-4 text-sm text-slate-900">{item.name}</td>
-                <td className={cn(
-                  "px-8 py-4 text-sm text-right tabular-nums",
-                  item.value < 0 ? "text-red-600" : "text-slate-900"
-                )}>{formatCurrency(item.value)}</td>
-                <td className="px-8 py-4 text-sm text-right text-slate-500 tabular-nums">
-                   {formatPercent(Math.abs(item.value / 1200000))}
-                </td>
-              </tr>
-            ))}
+            {dreData.map((item: any) => {
+              const hasPrevious = item.previous_value !== undefined && item.previous_value !== null && item.previous_value !== 0;
+              const yoy = hasPrevious ? (item.value / item.previous_value) - 1 : null;
+              
+              // Define color logic based on item type
+              let yoyColor = "text-slate-500";
+              if (yoy !== null) {
+                const isGoodIncrease = item.type === 'positive' || item.type === 'total' || item.type === 'result';
+                if (yoy > 0) {
+                  yoyColor = isGoodIncrease ? "text-green-600" : "text-red-600";
+                } else if (yoy < 0) {
+                  yoyColor = isGoodIncrease ? "text-red-600" : "text-green-600";
+                }
+              }
+
+              return (
+                <tr key={item.name} className={cn(
+                  "hover:bg-slate-50/50 transition-colors",
+                  item.type === 'result' || item.type === 'total' ? "bg-slate-50/30 font-bold" : ""
+                )}>
+                  <td className="px-8 py-4 text-sm text-slate-900">{item.name}</td>
+                  <td className="px-8 py-4 text-sm text-right text-slate-500 tabular-nums">
+                    {item.previous_value ? formatCurrency(item.previous_value) : '-'}
+                  </td>
+                  <td className={cn(
+                    "px-8 py-4 text-sm text-right tabular-nums",
+                    item.value < 0 ? "text-red-600" : "text-slate-900"
+                  )}>{formatCurrency(item.value)}</td>
+                  <td className={cn("px-8 py-4 text-sm text-right tabular-nums", yoyColor)}>
+                    {yoy !== null ? (yoy > 0 ? `+${formatPercent(yoy)}` : formatPercent(yoy)) : '-'}
+                  </td>
+                  <td className="px-8 py-4 text-sm text-right text-slate-500 tabular-nums">
+                    {summary.revenue ? formatPercent(Math.abs(item.value / summary.revenue)) : '-'}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -201,14 +254,14 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
       <div className="col-span-12 lg:col-span-6 bg-white border border-slate-200 p-8 rounded shadow-sm">
         <h3 className="text-xl font-bold text-slate-900 mb-8">Composição dos Ativos</h3>
         <div className="space-y-6">
-          {MOCK_BALANCE_SHEET.filter(e => e.category === 'Asset').map((item) => (
+          {balanceSheet.assets.map((item: any) => (
             <div key={item.name}>
               <div className="flex justify-between items-end mb-2">
                 <span className="text-sm font-bold text-slate-700">{item.name}</span>
                 <span className="text-sm font-medium text-slate-900">{formatCurrency(item.value)}</span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-primary" style={{ width: `${(item.value / 3750000) * 100}%` }} />
+                <div className="h-full bg-primary" style={{ width: `100%` }} />
               </div>
             </div>
           ))}
@@ -218,14 +271,14 @@ export default function AnalysisDashboard({ fileName }: AnalysisDashboardProps) 
       <div className="col-span-12 lg:col-span-6 bg-white border border-slate-200 p-8 rounded shadow-sm">
         <h3 className="text-xl font-bold text-slate-900 mb-8">Passivos e Patrimônio</h3>
         <div className="space-y-6">
-          {MOCK_BALANCE_SHEET.filter(e => e.category !== 'Asset').map((item) => (
+          {balanceSheet.liabilities.map((item: any) => (
             <div key={item.name}>
               <div className="flex justify-between items-end mb-2">
                 <span className="text-sm font-bold text-slate-700">{item.name}</span>
                 <span className="text-sm font-medium text-slate-900">{formatCurrency(item.value)}</span>
               </div>
               <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-slate-400" style={{ width: `${(item.value / 3750000) * 100}%` }} />
+                <div className="h-full bg-slate-400" style={{ width: `100%` }} />
               </div>
             </div>
           ))}

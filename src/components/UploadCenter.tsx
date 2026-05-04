@@ -1,24 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Upload, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import * as api from '../services/api';
 
 interface UploadCenterProps {
-  onUploadComplete: (fileName: string) => void;
+  onUploadComplete: (fileName: string, fileId: string) => void;
 }
 
 export default function UploadCenter({ onUploadComplete }: UploadCenterProps) {
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleSimulateUpload = () => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
-    // Simulação rápida de leitura local
-    setTimeout(() => {
-      onUploadComplete('Relatório_Financeiro_Q3.pdf');
-    }, 1200);
+    try {
+      const response = await api.uploadFile(file);
+      onUploadComplete(response.filename, response.file_id);
+    } catch (error) {
+      console.error('Falha no upload:', error);
+      setIsUploading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    document.getElementById('file-upload-input')?.click();
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-700">
+      <input 
+        id="file-upload-input"
+        type="file" 
+        className="hidden" 
+        accept=".pdf"
+        onChange={handleFileUpload}
+      />
       <section>
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Central de Inteligência</h1>
         <p className="text-slate-500">Inicie enviando sua demonstração financeira para análise contextual.</p>
@@ -34,8 +52,9 @@ export default function UploadCenter({ onUploadComplete }: UploadCenterProps) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="h-80 border-2 border-dashed border-slate-300 bg-slate-50 rounded-lg flex flex-col items-center justify-center text-center p-8 transition-colors hover:bg-slate-100 group cursor-pointer"
-                onClick={handleSimulateUpload}
+                onClick={triggerFileInput}
               >
+
                 <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Upload className="w-8 h-8 text-primary" />
                 </div>

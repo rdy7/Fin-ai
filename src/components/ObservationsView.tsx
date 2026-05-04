@@ -4,14 +4,13 @@ import { useState } from 'react';
 import { ExtraordinaryEvent } from '../types';
 
 interface ObservationsViewProps {
-  onFinish: () => void;
+  onFinish: (events: ExtraordinaryEvent[]) => void;
 }
 
 export default function ObservationsView({ onFinish }: ObservationsViewProps) {
-  const [events, setEvents] = useState<ExtraordinaryEvent[]>([
-    { id: '1', description: 'Venda de Imóvel Sede (Não Recorrente)', value: 450000, type: 'revenue', category: 'Outras Receitas' },
-    { id: '2', description: 'Reparo Emergencial (Inundação Almoxarifado)', value: 85000, type: 'expense', category: 'Manutenção' }
-  ]);
+
+  const [events, setEvents] = useState<ExtraordinaryEvent[]>([]);
+
 
   const [newDesc, setNewDesc] = useState('');
   const [newValue, setNewValue] = useState('');
@@ -51,9 +50,10 @@ export default function ObservationsView({ onFinish }: ObservationsViewProps) {
         </div>
         <div className="flex gap-4">
           <button 
-            onClick={onFinish}
+            onClick={() => onFinish(events)}
             className="px-8 py-3 bg-primary text-white font-bold text-xs tracking-widest rounded transition-all hover:opacity-90 shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2"
           >
+
             GERAR PAINEL AJUSTADO <Rocket className="w-4 h-4" />
           </button>
         </div>

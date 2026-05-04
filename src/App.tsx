@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AppView } from './types';
+import { AppView, ExtraordinaryEvent } from './types';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import AnalysisDashboard from './components/AnalysisDashboard';
@@ -7,21 +7,32 @@ import UploadCenter from './components/UploadCenter';
 import ObservationsView from './components/ObservationsView';
 import AnalysisReport from './components/AnalysisReport';
 import AnalysisLoading from './components/AnalysisLoading';
+import * as api from './services/api';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('Upload');
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [activeFileId, setActiveFileId] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
-  const handleUploadComplete = (fileName: string) => {
+  const handleUploadComplete = (fileName: string, fileId?: string) => {
     setActiveFileName(fileName);
-    // Transição rápida para ajustes
+    setActiveFileId(fileId || 'temp_id');
     setCurrentView('Observations');
   };
 
-  const handleStartAnalysis = () => {
+  const handleStartAnalysis = async (adjustments: ExtraordinaryEvent[]) => {
     setIsProcessing(true);
+    try {
+      const result = await api.analyzeFinancials(activeFileId || '', adjustments);
+      setAnalysisResult(result);
+      // O AnalysisLoading chama o onComplete quando termina a animação
+    } catch (error) {
+      console.error('Erro na análise:', error);
+      setIsProcessing(false);
+    }
   };
 
   const handleAnalysisFinished = () => {
@@ -41,13 +52,14 @@ export default function App() {
       case 'Observations':
         return <ObservationsView onFinish={handleStartAnalysis} />;
       case 'Dashboard':
-        return <AnalysisDashboard fileName={activeFileName} />;
+        return <AnalysisDashboard fileName={activeFileName} data={analysisResult} />;
       case 'Report':
-        return <AnalysisReport />;
+        return <AnalysisReport data={analysisResult} />;
       default:
         return <UploadCenter onUploadComplete={handleUploadComplete} />;
     }
   };
+
 
 
 

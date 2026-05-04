@@ -1,8 +1,14 @@
 import { Download, Share2, Sparkles, AlertCircle } from 'lucide-react';
-import { MOCK_PERFORMANCE, MOCK_DRE } from '../constants';
 import { cn, formatCurrency, formatPercent } from '../lib/utils';
 
-export default function AnalysisReport() {
+interface AnalysisReportProps {
+  data?: any;
+}
+
+export default function AnalysisReport({ data }: AnalysisReportProps) {
+  const summary = data?.summary || { revenue: 0, ebitda: 0, net_income: 0 };
+  const dre = data?.dre || [];
+
   return (
     <div className="bg-slate-100 min-h-screen py-10">
       {/* Toolbar */}
@@ -21,12 +27,12 @@ export default function AnalysisReport() {
         <header className="border-b-2 border-primary pb-8 mb-12 flex justify-between items-start">
           <div>
             <p className="text-[10px] font-bold text-primary tracking-[0.2em] mb-2 uppercase">Estritamente Confidencial</p>
-            <h1 className="text-2xl font-bold text-slate-900 uppercase">Relatório de Análise: Revisão Fiscal Q3</h1>
+            <h1 className="text-2xl font-bold text-slate-900 uppercase">Relatório de Análise Financeira</h1>
             <p className="text-sm text-slate-500 italic mt-1 font-serif">Avaliação Estratégica de DRE e Balanço Patrimonial</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-bold text-slate-900 tracking-wider">ID RELATÓRIO: FIN-2023-Q3-BR</p>
-            <p className="text-xs text-slate-500 mt-1">Data: 14 de Outubro, 2023</p>
+            <p className="text-[10px] font-bold text-slate-900 tracking-wider">ID RELATÓRIO: FIN-AI-DOC</p>
+            <p className="text-xs text-slate-500 mt-1">Data: {new Date().toLocaleDateString('pt-BR')}</p>
             <p className="text-xs text-slate-500">Analista: IA Financial System</p>
           </div>
         </header>
@@ -35,63 +41,84 @@ export default function AnalysisReport() {
         <section className="mb-12">
           <h2 className="text-lg font-bold text-primary border-b border-slate-200 pb-2 mb-6 uppercase tracking-wider">1. Sumário Executivo</h2>
           <p className="text-base text-slate-900 leading-relaxed mb-8">
-            Esta avaliação financeira abrangente cobre o desempenho do terceiro trimestre, destacando a expansão da margem EBITDA e o fortalecimento da posição de liquidez. O período apresentou um crescimento robusto na receita líquida, impulsionado pela eficiência operacional.
+            Esta avaliação financeira processada via IA destaca os principais indicadores de desempenho com base nos dados do documento fornecido e ajustes manuais aplicados.
           </p>
           <div className="grid grid-cols-3 gap-8 border-y border-slate-100 py-8">
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Receita Líquida</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-slate-900">R$ 1.00M</span>
-                <span className="text-green-600 font-bold text-xs">+12.4%</span>
-              </div>
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">EBITDA</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-slate-900">R$ 350K</span>
-                <span className="text-green-600 font-bold text-xs">+5.2%</span>
-              </div>
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Lucro Líquido</span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xl font-bold text-slate-900">R$ 200K</span>
-                <span className="text-green-600 font-bold text-xs">+18.0%</span>
-              </div>
-            </div>
+            {[
+              { label: 'Receita Líquida', actual: summary.revenue, previous: summary.previous_revenue },
+              { label: 'EBITDA Ajustado', actual: summary.ebitda, previous: summary.previous_ebitda },
+              { label: 'Lucro Líquido Ajustado', actual: summary.net_income, previous: summary.previous_net_income }
+            ].map((kpi, i) => {
+              const yoy = kpi.previous ? (kpi.actual / kpi.previous) - 1 : null;
+              return (
+                <div key={i}>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{kpi.label}</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-bold text-slate-900">{formatCurrency(kpi.actual)}</span>
+                    {yoy !== null && (
+                      <span className={cn("font-bold text-xs", yoy > 0 ? "text-green-600" : "text-red-600")}>
+                        {yoy > 0 ? '+' : ''}{formatPercent(yoy)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <p className="mt-6 text-sm text-slate-500 leading-relaxed italic">
-            O ROE (Retorno sobre Patrimônio) atingiu 18%, superando as expectativas do setor e demonstrando uma gestão de capital eficiente.
-          </p>
         </section>
+
 
         {/* Section 2: Financial Performance */}
         <section className="mb-12">
           <h2 className="text-lg font-bold text-primary border-b border-slate-200 pb-2 mb-6 uppercase tracking-wider">2. Demonstração de Resultados (DRE)</h2>
           <p className="text-sm text-slate-900 leading-relaxed mb-8">
-            A análise vertical da DRE indica que o CPV representa 40% da receita bruta, mantendo-se estável em relação ao trimestre anterior. As despesas administrativas foram otimizadas em 5%.
+            Composição consolidada dos resultados do período.
           </p>
           <div className="bg-slate-50 p-8 border border-slate-100 rounded mb-8">
             <table className="w-full text-[11px]">
               <thead>
                 <tr className="border-b border-slate-200">
                   <th className="text-left py-2 uppercase tracking-wider text-slate-500">Item</th>
-                  <th className="text-right py-2 uppercase tracking-wider text-slate-500">Valor (R$)</th>
+                  <th className="text-right py-2 uppercase tracking-wider text-slate-500">Anterior</th>
+                  <th className="text-right py-2 uppercase tracking-wider text-slate-500">Atual</th>
+                  <th className="text-right py-2 uppercase tracking-wider text-slate-500">Var YoY</th>
                   <th className="text-right py-2 uppercase tracking-wider text-slate-500">% Rec.</th>
                 </tr>
               </thead>
               <tbody>
-                {MOCK_DRE.slice(0, 8).map((item, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    <td className="py-2 font-bold text-slate-700">{item.name}</td>
-                    <td className="py-2 text-right tabular-nums">{formatCurrency(item.value)}</td>
-                    <td className="py-2 text-right tabular-nums">{formatPercent(Math.abs(item.value / 1200000))}</td>
+                {dre.length > 0 ? (
+                  dre.map((item: any, i: number) => {
+                    const hasPrevious = item.previous_value !== undefined && item.previous_value !== null && item.previous_value !== 0;
+                    const yoy = hasPrevious ? (item.value / item.previous_value) - 1 : null;
+                    return (
+                      <tr key={i} className="border-b border-slate-100">
+                        <td className="py-2 font-bold text-slate-700">{item.name}</td>
+                        <td className="py-2 text-right tabular-nums text-slate-500">
+                          {item.previous_value ? formatCurrency(item.previous_value) : '-'}
+                        </td>
+                        <td className="py-2 text-right tabular-nums">{formatCurrency(item.value)}</td>
+                        <td className={cn(
+                          "py-2 text-right tabular-nums",
+                          yoy !== null ? (yoy > 0 ? "text-green-600" : "text-red-600") : "text-slate-500"
+                        )}>
+                          {yoy !== null ? (yoy > 0 ? `+${formatPercent(yoy)}` : formatPercent(yoy)) : '-'}
+                        </td>
+                        <td className="py-2 text-right tabular-nums">
+                          {summary.revenue ? formatPercent(Math.abs(item.value / summary.revenue)) : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-4 text-center text-slate-400 italic">Dados da DRE indisponíveis.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </section>
+
 
         {/* Section 3: AI Strategic Assessment */}
         <section className="mb-12">
