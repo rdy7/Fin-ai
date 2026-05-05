@@ -1,6 +1,10 @@
 {
-  "name": "Finalyze Core",
-  "description": "Institutional-grade financial analyzer with AI-powered insights, multi-format file uploads, and professional report generation.",
+  "name": "Fin AI",
+  "description": "Análise de relatórios financeiros com IA.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["File Analysis", "Financial Reporting", "AI Dashboard"]
+  "majorCapabilities": [
+    "File Analysis",
+    "Financial Reporting",
+    "AI Dashboard"
+  ]
 }
